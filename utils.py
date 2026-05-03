@@ -60,28 +60,34 @@ def get_data(dir):
 
 
 
-def create_pairs(X,Y, num_classes):
-    pairs = [] 
+def create_pairs(X, Y, num_classes):
+    pairs = []
     labels = []
-    # we are alternating same and not same images so this will tell us what to make
-    same_person = True
+    # group indices by class
+    class_indices = [np.where(Y == i)[0] for i in range(1, num_classes + 1)]
+
     for i in range(num_classes):
-        image1 = X[i]
-        label1 = Y[i]
-        if same_person:
-            image2 = X[i]
+        indices = class_indices[i]
 
-            
-        else:
-            
-            
-        pairs.append((image1,image2))
-        labels.append(int(same_person))
-        same_person = not same_person
-            
+        # need at least 2 images to form a positive pair
+        if len(indices) < 2:
+            continue
 
-        
+        for j in range(len(indices) - 1):
+            #same person
+            image1 = indices[j]
+            image2 = indices[j + 1]
 
+            pairs.append([X[image1], X[image2]])
+            labels.append(1)
 
+            # different person
+            neg_class = (i + np.random.randint(1, num_classes)) % num_classes
+            neg_indices = class_indices[neg_class]
 
-    return pairs, labels
+            image2 = np.random.choice(neg_indices)
+
+            pairs.append([X[image1], X[image2]])
+            labels.append(0)
+
+    return np.array(pairs), np.array(labels)
