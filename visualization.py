@@ -7,7 +7,7 @@ from keras.preprocessing.image import load_img, img_to_array
 
 # ** YOUR CODE HERE **
 #nine images from first folder
-folder = "att_faces/s1"
+folder = "att_faces/s25"
 images = sorted([
     f for f in os.listdir(folder)
     if f.endswith(".pgm")
