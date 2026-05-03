@@ -22,7 +22,7 @@ def shared_network():
     #conv layer 2
     model.add(Conv2D(filters = 32, kernel_size = (3,3), activation="relu"))
 
-    #pooling 
+    #pooling the paper has only one pooling layer but recource online told me we should have two as they reduce noise
     model.add(MaxPooling2D(pool_size=(2,2)))
 
     #flatten
