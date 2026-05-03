@@ -31,6 +31,27 @@ def shared_network():
     #dense layer
     model.add(Dense(128,activation= "sigmoid" ))
 
+    return model
+
+def siamese_model():
+    input_top = Input(shape=(112, 92, 1))
+    input_bottom = Input(shape=(112, 92, 1))
+
+    shared = shared_network()
+  
+    embedding_top = shared(input_top)
+    embedding_bottom = shared(input_bottom)
+   
+    distance = Lambda(utils.euclidean_distance)([embedding_top, embedding_bottom])
+
+    model = Model(
+    inputs=[input_top, input_bottom],
+    outputs=distance
+    )
+
+    return model
+
+
 
 
     
