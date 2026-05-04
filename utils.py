@@ -10,7 +10,6 @@ from keras.layers import Flatten, Dense, Conv2D, MaxPooling2D
 from keras import backend as K
 from keras.preprocessing.image import load_img, img_to_array
 
-
 def euclidean_distance(vectors):
     vector1, vector2 = vectors
     sum_square = K.sum(K.square(vector1 - vector2), axis=1, keepdims=True)
@@ -22,6 +21,7 @@ def contrastive_loss(Y_true, D):
 
 def accuracy(y_true, y_pred):
     return K.mean(K.equal(y_true, K.cast(y_pred < 0.5, y_true.dtype)))
+
 
 
 def get_data(dir):
