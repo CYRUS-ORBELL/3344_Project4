@@ -9,20 +9,37 @@ from keras.models import Sequential
 from keras.layers import Flatten, Dense, Conv2D, MaxPooling2D
 from keras import backend as K
 from keras.preprocessing.image import load_img, img_to_array
+import tensorflow as tf
+
+#def euclidean_distance(vectors):
+    #vector1, vector2 = vectors
+    #sum_square = K.sum(K.square(vector1 - vector2), axis=1, keepdims=True)
+    #return K.sqrt(K.maximum(sum_square, K.epsilon()))
+
 
 def euclidean_distance(vectors):
     vector1, vector2 = vectors
-    sum_square = K.sum(K.square(vector1 - vector2), axis=1, keepdims=True)
-    return K.sqrt(K.maximum(sum_square, K.epsilon()))
+    sum_square = tf.reduce_sum(tf.square(vector1 - vector2), axis=1, keepdims=True)
+    return tf.sqrt(tf.maximum(sum_square, tf.keras.backend.epsilon()))
 
-def contrastive_loss(Y_true, D):
-    margin = 1
-    return K.mean(Y_true * K.square(D) + (1 - Y_true) * K.maximum((margin-D),0))
+#def contrastive_loss(Y_true, D):
+    #margin = 1
+    #return K.mean(Y_true * K.square(D) + (1 - Y_true) * K.maximum((margin-D),0))
 
+
+def contrastive_loss(y_true, D):
+    margin = 1.0
+    return tf.reduce_mean(
+        y_true * tf.square(D) +
+        (1 - y_true) * tf.square(tf.maximum(margin - D, 0.0))
+    )
+
+#def accuracy(y_true, y_pred):
+    #return K.mean(K.equal(y_true, K.cast(y_pred < 0.5, y_true.dtype)))
 def accuracy(y_true, y_pred):
-    return K.mean(K.equal(y_true, K.cast(y_pred < 0.5, y_true.dtype)))
-
-
+    y_true = tf.cast(y_true, tf.float32)
+    y_pred = tf.cast(y_pred < 0.5, tf.float32)
+    return tf.reduce_mean(tf.cast(tf.equal(y_true, y_pred), tf.float32))
 
 def get_data(dir):
     # ** YOUR CODE HERE **
