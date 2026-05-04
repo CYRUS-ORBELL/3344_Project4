@@ -10,6 +10,7 @@ from keras.layers import Flatten, Dense, Conv2D, MaxPooling2D
 from keras import backend as K
 from keras.preprocessing.image import load_img, img_to_array
 
+
 def euclidean_distance(vectors):
     vector1, vector2 = vectors
     sum_square = K.sum(K.square(vector1 - vector2), axis=1, keepdims=True)
@@ -84,6 +85,8 @@ def create_pairs(X, Y, num_classes):
             # different person
             neg_class = (i + np.random.randint(1, num_classes)) % num_classes
             neg_indices = class_indices[neg_class]
+            if len(neg_indices) == 0:
+                continue
 
             image2 = np.random.choice(neg_indices)
 
@@ -91,3 +94,5 @@ def create_pairs(X, Y, num_classes):
             labels.append(0)
 
     return np.array(pairs), np.array(labels)
+
+

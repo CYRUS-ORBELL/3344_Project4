@@ -22,7 +22,7 @@ def shared_network():
     #conv layer 2
     model.add(Conv2D(filters = 32, kernel_size = (3,3), activation="relu"))
 
-    #pooling the paper has only one pooling layer but recource online told me we should have two as they reduce noise
+    #pooling 
     model.add(MaxPooling2D(pool_size=(2,2)))
 
     #flatten
@@ -42,14 +42,38 @@ def siamese_model():
     embedding_top = shared(input_top)
     embedding_bottom = shared(input_bottom)
    
-    distance = Lambda(utils.euclidean_distance)([embedding_top, embedding_bottom])
+    distance = Lambda(utils.euclidean_distance, output_shape=(1,))([embedding_top, embedding_bottom])
+
+  
 
     model = Model(
     inputs=[input_top, input_bottom],
-    outputs=distance
+    outputs=distance,
+    
     )
 
     return model
+
+#run model
+model = siamese_model()
+model.compile(loss = utils.contrastive_loss , metrics = [utils.accuracy], optimizer = "adam")
+training, training_labels, test, test_labels = utils.get_data("att_faces")
+
+
+training_pairs, training_pairs_labels = utils.create_pairs(training,training_labels, 35)
+testing_pairs, testing_pairs_labels = utils.create_pairs(test, test_labels,5)
+
+
+
+X1 = training_pairs[:, 0]
+X2 = training_pairs[:, 1]
+
+model.fit(
+    [X1, X2],
+    training_pairs_labels,
+    epochs=1,
+    batch_size= 10
+)
 
 
 
