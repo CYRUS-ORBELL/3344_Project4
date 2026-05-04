@@ -32,15 +32,21 @@ def contrastive_loss(y_true, D):
     margin = 1.0
     return tf.reduce_mean(
         y_true * tf.square(D) +
-        (1 - y_true) * tf.square(tf.maximum(margin - D, 0.0))
+        (1 - y_true) * tf.maximum(margin - D, 0.0)
     )
 
 #def accuracy(y_true, y_pred):
     #return K.mean(K.equal(y_true, K.cast(y_pred < 0.5, y_true.dtype)))
 def accuracy(y_true, y_pred):
-    y_true = tf.cast(y_true, tf.float32)
-    y_pred = tf.cast(y_pred < 0.5, tf.float32)
-    return tf.reduce_mean(tf.cast(tf.equal(y_true, y_pred), tf.float32))
+    return tf.reduce_mean(
+        tf.cast(
+            tf.equal(
+                y_true,
+                tf.cast(y_pred < 0.5, y_true.dtype)
+            ),
+            tf.float32
+        )
+    )
 
 def get_data(dir):
     # ** YOUR CODE HERE **

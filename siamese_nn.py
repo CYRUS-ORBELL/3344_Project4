@@ -30,7 +30,7 @@ def shared_network():
     model.add(Flatten())
 
     #dense layer
-    model.add(Dense(128,activation= "sigmoid" ))
+    model.add(Dense(128,activation= None ))
 
     return model
 
@@ -44,9 +44,7 @@ def siamese_model():
     embedding_bottom = shared(input_bottom)
    
     distance = Lambda(utils.euclidean_distance, output_shape=(1,))([embedding_top, embedding_bottom])
-
   
-
     model = Model(
     inputs=[input_top, input_bottom],
     outputs=distance,
@@ -69,12 +67,15 @@ testing_pairs, testing_pairs_labels = utils.create_pairs(test, test_labels,5)
 X1 = training_pairs[:, 0]
 X2 = training_pairs[:, 1]
 
+
 model.fit(
     [X1, X2],
     training_pairs_labels,
-    epochs=1,
+    epochs=20,
     batch_size= 10
 )
+
+
 
 
 
