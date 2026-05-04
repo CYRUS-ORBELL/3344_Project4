@@ -9,6 +9,7 @@ from keras.models import Sequential
 from keras.layers import Flatten, Dense, Conv2D, MaxPooling2D
 from keras import backend as K
 from keras.preprocessing.image import load_img, img_to_array
+#new
 import tensorflow as tf
 
 #def euclidean_distance(vectors):
