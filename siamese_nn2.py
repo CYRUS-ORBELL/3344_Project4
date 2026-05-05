@@ -6,20 +6,37 @@ import utils
 import numpy as np
 import matplotlib.pyplot as plt
 from keras.models import Model, Sequential
-from keras.layers import Input, Lambda, Flatten, Dense, Conv2D, MaxPooling2D
+from keras.layers import Input, Lambda, Flatten, Dense, Conv2D, MaxPooling2D, BatchNormalization, GlobalAveragePooling2D,Dropout
 import tensorflow as tf
 from keras.optimizers import Adam
 # ** YOUR CODE HERE **
+
 def shared_network():
     model = Sequential()
+
     model.add(Input(shape=(112, 92, 1)))
     model.add(Conv2D(32, (3,3), activation='relu'))
     model.add(MaxPooling2D(pool_size=(2,2)))
+    model.add(Dropout(0.25))
+
     model.add(Conv2D(64, (3,3), activation='relu'))
     model.add(MaxPooling2D(pool_size=(2,2)))
+    model.add(Dropout(0.25))
+
+    model.add(Conv2D(128, (3,3), activation='relu'))
+    model.add(MaxPooling2D(pool_size=(2,2)))
+    model.add(Dropout(0.25))
+
+    model.add(Conv2D(256, (3,3), activation='relu'))
+    model.add(MaxPooling2D(pool_size=(2,2)))
+    model.add(Dropout(0.25))
+
+
     model.add(Flatten())
+    model.add(Dense(256, activation='relu'))
     model.add(Dense(128, activation='relu'))
     return model
+
 
 def siamese_nn():
     input_top = Input(shape=(112, 92, 1))
@@ -64,10 +81,14 @@ model.fit(
     [X1_train, X2_train],
     train_labels,
     batch_size=10,
-    epochs=2,  # more epochs
+    epochs=4,  # more epochs
     validation_data=([X1_test, X2_test], test_labels)
 )
 model.evaluate([X1_test, X2_test], test_labels)
+
+
+
+
 
 
 #------------------------------visual stuff
@@ -112,73 +133,4 @@ def plot_pairs(X1, X2, labels, predictions, num_samples=6):
     plt.tight_layout()
     plt.show()
 
-#plot_pairs(X1_test, X2_test, y_test, predictions, num_samples=2)
-
-
-
-
-
-
-
-threshold = 0.5
-
-distances = predictions.flatten()
-y_pred = (distances < threshold).astype(int)
-
-# IMPORTANT: use correct labels
-y_true = test_labels.flatten()
-
-wrong_indices = np.where(y_pred != y_true)[0]
-
-if len(wrong_indices) == 0:
-    print("No misclassifications found!")
-
-
-def plot_pairs_subset(X1, X2, labels, predictions, indices, num_samples=6):
-    pairs_per_row = 2
-    num_samples = min(num_samples, len(indices))
-    rows = (num_samples + pairs_per_row - 1) // pairs_per_row
-
-    plt.figure(figsize=(8, 4 * rows))
-
-    for i in range(num_samples):
-        idx = indices[i]
-
-        row = i // pairs_per_row
-        col_pair = i % pairs_per_row
-        col = col_pair * 2
-
-        dist = float(predictions[idx])
-        label = labels[idx]
-        pred = int(dist < 0.5)
-
-        # First image
-        plt.subplot(rows, pairs_per_row * 2, row * pairs_per_row * 2 + col + 1)
-        plt.text(
-            0.5, 1.2,
-            f"True: {label} | Pred: {pred} | Dist: {dist:.3f}",
-            ha='center',
-            va='bottom',
-            transform=plt.gca().transAxes,
-            fontsize=10,
-            color='red'  # highlight errors
-        )
-        plt.imshow(X1[idx].reshape(112, 92), cmap='gray')
-        plt.axis('off')
-
-        # Second image
-        plt.subplot(rows, pairs_per_row * 2, row * pairs_per_row * 2 + col + 2)
-        plt.imshow(X2[idx].reshape(112, 92), cmap='gray')
-        plt.axis('off')
-
-    plt.tight_layout()
-    plt.show()
-
-plot_pairs_subset(
-    X1_test,
-    X2_test,
-    test_labels,
-    predictions,
-    wrong_indices,
-    num_samples=6
-)
+plot_pairs(X1_test, X2_test, y_test, predictions, num_samples=2)

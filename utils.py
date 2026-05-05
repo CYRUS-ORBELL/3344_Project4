@@ -14,19 +14,16 @@ from keras.preprocessing.image import load_img, img_to_array
 import tensorflow as tf
 
 
-#def euclidean_distance(vectors):
-    #vector1, vector2 = vectors
-    #sum_square = K.sum(K.square(vector1 - vector2), axis=1, keepdims=True)
-    #return K.sqrt(K.maximum(sum_square, K.epsilon()))
+
 def euclidean_distance(vectors):
     v1, v2 = vectors
     return tf.sqrt(
-        tf.reduce_sum(tf.square(v1 - v2), axis=1)  # remove keepdims=True
+        tf.reduce_sum(tf.square(v1 - v2), axis=1) 
     )
 
 def contrastive_loss(y_true, d):
     y_true = tf.cast(y_true, tf.float32)
-    margin = 1.0  # back to 1.0
+    margin = 1.0  
     return tf.reduce_mean(
         y_true * tf.square(d) +
         (1 - y_true) * tf.square(tf.maximum(margin - d, 0.0))
@@ -91,5 +88,4 @@ def create_pairs(X, Y, num_classes):
                 labels.append(0)
 
     return np.array(pairs), np.array(labels) 
-
 
