@@ -5,6 +5,7 @@ Main code for training a Siamese neural network for face recognition
 import utils
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.metrics import confusion_matrix, classification_report, accuracy_score, precision_score, recall_score, f1_score
 from keras.models import Model, Sequential
 from keras.layers import Input, Lambda, Flatten, Dense, Conv2D, MaxPooling2D
 import tensorflow as tf
@@ -60,19 +61,71 @@ model.compile(
     metrics=[utils.accuracy]
 )
 
-model.fit(
+history = model.fit(
     [X1_train, X2_train],
     train_labels,
     batch_size=10,
-    epochs=2,  # more epochs
+    epochs=3,  # more epochs
     validation_data=([X1_test, X2_test], test_labels)
 )
 model.evaluate([X1_test, X2_test], test_labels)
 
 
-#------------------------------visual stuff
+#------------------------------evaluation metrics
 predictions = model.predict([X1_test, X2_test])
-import matplotlib.pyplot as plt
+
+# choose a threshold for the distance to represent a match/non-match
+threshold = 0.5
+predicted_labels = (predictions < threshold).astype(int).reshape(-1)
+true_labels = test_labels.reshape(-1)
+
+accuracy = accuracy_score(true_labels, predicted_labels)
+precision = precision_score(true_labels, predicted_labels)
+recall = recall_score(true_labels, predicted_labels)
+f1 = f1_score(true_labels, predicted_labels)
+cm = confusion_matrix(true_labels, predicted_labels)
+
+print("\n=== Evaluation Metrics ===")
+print(f"Accuracy:  {accuracy:.4f}")
+print(f"Precision: {precision:.4f}")
+print(f"Recall:    {recall:.4f}")
+print(f"F1 Score:  {f1:.4f}")
+print("\nClassification Report:")
+print(classification_report(true_labels, predicted_labels, target_names=['Different', 'Same']))
+print("Confusion Matrix:")
+print(cm)
+
+
+def plot_confusion_matrix(cm, classes=['Different', 'Same'], normalize=False, title='Confusion Matrix'):
+    plt.figure(figsize=(5, 4))
+    if normalize:
+        cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+        fmt = '.2f'
+    else:
+        fmt = 'd'
+
+    plt.imshow(cm, interpolation='nearest', cmap=plt.cm.Blues)
+    plt.title(title)
+    plt.colorbar()
+    tick_marks = np.arange(len(classes))
+    plt.xticks(tick_marks, classes)
+    plt.yticks(tick_marks, classes)
+
+    thresh = cm.max() / 2.
+    for i, j in np.ndindex(cm.shape):
+        plt.text(j, i, format(cm[i, j], fmt),
+                 horizontalalignment='center',
+                 color='white' if cm[i, j] > thresh else 'black')
+
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
+    plt.tight_layout()
+    plt.show()
+
+plot_confusion_matrix(cm)
+
+
+#------------------------------visual stuff
 
 def plot_pairs(X1, X2, labels, predictions, num_samples=6):
     pairs_per_row = 2
@@ -119,66 +172,6 @@ def plot_pairs(X1, X2, labels, predictions, num_samples=6):
 
 
 
-
-threshold = 0.5
-
-distances = predictions.flatten()
-y_pred = (distances < threshold).astype(int)
-
-# IMPORTANT: use correct labels
-y_true = test_labels.flatten()
-
-wrong_indices = np.where(y_pred != y_true)[0]
-
-if len(wrong_indices) == 0:
-    print("No misclassifications found!")
+  
 
 
-def plot_pairs_subset(X1, X2, labels, predictions, indices, num_samples=6):
-    pairs_per_row = 2
-    num_samples = min(num_samples, len(indices))
-    rows = (num_samples + pairs_per_row - 1) // pairs_per_row
-
-    plt.figure(figsize=(8, 4 * rows))
-
-    for i in range(num_samples):
-        idx = indices[i]
-
-        row = i // pairs_per_row
-        col_pair = i % pairs_per_row
-        col = col_pair * 2
-
-        dist = float(predictions[idx])
-        label = labels[idx]
-        pred = int(dist < 0.5)
-
-        # First image
-        plt.subplot(rows, pairs_per_row * 2, row * pairs_per_row * 2 + col + 1)
-        plt.text(
-            0.5, 1.2,
-            f"True: {label} | Pred: {pred} | Dist: {dist:.3f}",
-            ha='center',
-            va='bottom',
-            transform=plt.gca().transAxes,
-            fontsize=10,
-            color='red'  # highlight errors
-        )
-        plt.imshow(X1[idx].reshape(112, 92), cmap='gray')
-        plt.axis('off')
-
-        # Second image
-        plt.subplot(rows, pairs_per_row * 2, row * pairs_per_row * 2 + col + 2)
-        plt.imshow(X2[idx].reshape(112, 92), cmap='gray')
-        plt.axis('off')
-
-    plt.tight_layout()
-    plt.show()
-
-plot_pairs_subset(
-    X1_test,
-    X2_test,
-    test_labels,
-    predictions,
-    wrong_indices,
-    num_samples=6
-)
