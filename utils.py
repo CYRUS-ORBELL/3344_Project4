@@ -5,26 +5,91 @@ import numpy as np
 import random
 import os
 import cv2
+from PIL import Image
 from keras.models import Sequential
 from keras.layers import Flatten, Dense, Conv2D, MaxPooling2D
 from keras import backend as K
 from keras.preprocessing.image import load_img, img_to_array
+#new stuff
+import tensorflow as tf
 
+
+#def euclidean_distance(vectors):
+    #vector1, vector2 = vectors
+    #sum_square = K.sum(K.square(vector1 - vector2), axis=1, keepdims=True)
+    #return K.sqrt(K.maximum(sum_square, K.epsilon()))
 def euclidean_distance(vectors):
-    vector1, vector2 = vectors
-    sum_square = K.sum(K.square(vector1 - vector2), axis=1, keepdims=True)
-    return K.sqrt(K.maximum(sum_square, K.epsilon()))
+    v1, v2 = vectors
+    return tf.sqrt(
+        tf.reduce_sum(tf.square(v1 - v2), axis=1)  # remove keepdims=True
+    )
 
-def contrastive_loss(Y_true, D):
-    margin = 1
-    return K.mean(Y_true * K.square(D) + (1 - Y_true) * K.maximum((margin-D),0))
+def contrastive_loss(y_true, d):
+    y_true = tf.cast(y_true, tf.float32)
+    margin = 1.0  # back to 1.0
+    return tf.reduce_mean(
+        y_true * tf.square(d) +
+        (1 - y_true) * tf.square(tf.maximum(margin - d, 0.0))
+    )
 
 def accuracy(y_true, y_pred):
-    return K.mean(K.equal(y_true, K.cast(y_pred < 0.5, y_true.dtype)))
+    y_true = tf.cast(tf.reshape(y_true, [-1]), tf.float32)
+    y_pred = tf.reshape(y_pred, [-1])  # flatten to 1D
+    return tf.reduce_mean(tf.cast(tf.equal(y_true, tf.cast(y_pred < 0.5, tf.float32)), tf.float32))
+
 
 def get_data(dir):
-    # ** YOUR CODE HERE **
+    X_train, y_train = [], []
+    X_test, y_test = [], []
+    for subject in range(1, 41):
+        folder = os.path.join(dir, f"s{subject}")
+        for file in os.listdir(folder):
+            img_path = os.path.join(folder, file)
+            # load image in grayscale
+            img = Image.open(img_path).convert("L")
+            img = np.array(img)
 
-def create_pairs(X,Y, num_classes):
-    # ** YOUR CODE HERE **
+            # normalize (important for neural nets)
+            img = img / 255.0
+
+            # add channel dimension (112x92 -> 112x92x1)
+            img = np.expand_dims(img, axis=-1)
+
+            if subject <= 35:
+                X_train.append(img)
+                y_train.append(subject)
+            else:
+                X_test.append(img)
+                y_test.append(subject)
+    return (
+        np.array(X_train),
+        np.array(y_train),
+        np.array(X_test),
+        np.array(y_test),
+    )
+
+def create_pairs(X, Y, num_classes):
+    pairs = []
+    labels = []
+    X = np.array(X)
+    Y = np.array(Y)
     
+    class_indices = [np.where(Y == i)[0] for i in range(1, num_classes + 1)]
+
+    for c in range(num_classes):
+        idxs = class_indices[c]
+        # All same-class combinations instead of just sequential
+        for i in range(len(idxs)):
+            for j in range(i + 1, len(idxs)):
+                pairs.append([X[idxs[i]], X[idxs[j]]])
+                labels.append(1)
+                # One different-class pair per same-class pair
+                c2 = (c + np.random.randint(1, num_classes)) % num_classes
+                idxs2 = class_indices[c2]
+                idx2 = idxs2[np.random.randint(0, len(idxs2))]
+                pairs.append([X[idxs[i]], X[idx2]])
+                labels.append(0)
+
+    return np.array(pairs), np.array(labels) 
+
+
