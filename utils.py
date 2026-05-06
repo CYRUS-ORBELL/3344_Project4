@@ -65,9 +65,10 @@ def get_data(dir):
         np.array(y_test),
     )
 
-def create_pairs(X, Y, num_classes):
+def create_pairs(X, Y, num_classes, return_subject_ids=False):
     pairs = []
     labels = []
+    subject_ids = []
     X = np.array(X)
     Y = np.array(Y)
     
@@ -80,12 +81,16 @@ def create_pairs(X, Y, num_classes):
             for j in range(i + 1, len(idxs)):
                 pairs.append([X[idxs[i]], X[idxs[j]]])
                 labels.append(1)
+                subject_ids.append((Y[idxs[i]], Y[idxs[j]]))
                 # One different-class pair per same-class pair
                 c2 = (c + np.random.randint(1, num_classes)) % num_classes
                 idxs2 = class_indices[c2]
                 idx2 = idxs2[np.random.randint(0, len(idxs2))]
                 pairs.append([X[idxs[i]], X[idx2]])
                 labels.append(0)
+                subject_ids.append((Y[idxs[i]], Y[idx2]))
 
-    return np.array(pairs), np.array(labels) 
+    if return_subject_ids:
+        return np.array(pairs), np.array(labels), np.array(subject_ids)
+    return np.array(pairs), np.array(labels)
 
