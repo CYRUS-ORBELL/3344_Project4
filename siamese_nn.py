@@ -66,7 +66,7 @@ history = model.fit(
     [X1_train, X2_train],
     train_labels,
     batch_size=10,
-    epochs=3,  # more epochs
+    epochs=15,  # more epochs
     validation_data=([X1_test, X2_test], test_labels)
 )
 model.evaluate([X1_test, X2_test], test_labels)
@@ -76,7 +76,7 @@ model.evaluate([X1_test, X2_test], test_labels)
 predictions = model.predict([X1_test, X2_test])
 
 # choose a threshold for the distance to represent a match/non-match
-threshold = 0.5
+threshold = .8
 predicted_labels = (predictions < threshold).astype(int).reshape(-1)
 true_labels = test_labels.reshape(-1)
 
@@ -280,7 +280,7 @@ def plot_correct_pairs(X1, X2, true_labels, predicted_labels, pair_subjects, num
         axes[row, 1].set_title(f"Subj {int(s2)}")
         axes[row, 1].axis('off')
         
-        fig.text(0.02, 0.5 + (total_pairs - row - 1) * (1.0 / total_pairs), 
+        fig.text(0.02, 0.5 + (total_pairs - row - 1) * (.8 / total_pairs), 
                  "SAME\n(correct)", rotation=90, verticalalignment='center', fontweight='bold', color='green')
         row += 1
     
@@ -295,7 +295,7 @@ def plot_correct_pairs(X1, X2, true_labels, predicted_labels, pair_subjects, num
         axes[row, 1].set_title(f"Subj {int(s2)}")
         axes[row, 1].axis('off')
         
-        fig.text(0.02, 0.5 + (total_pairs - row - 1) * (1.0 / total_pairs), 
+        fig.text(0.02, 0.5 + (total_pairs - row - 1) * (.8 / total_pairs), 
                  "DIFFERENT\n(correct)", rotation=90, verticalalignment='center', fontweight='bold', color='blue')
         row += 1
     
@@ -378,7 +378,7 @@ def plot_predictions_distribution(predictions, true_labels):
     # Histogram
     axes[0, 0].hist(positive_dists, bins=30, alpha=0.6, label='Same Person (Positive)', color='green', edgecolor='black')
     axes[0, 0].hist(negative_dists, bins=30, alpha=0.6, label='Different Person (Negative)', color='red', edgecolor='black')
-    axes[0, 0].axvline(0.5, color='blue', linestyle='--', linewidth=2, label='Decision Threshold (0.5)')
+    axes[0, 0].axvline(.8, color='blue', linestyle='--', linewidth=2, label='Decision Threshold (.8)')
     axes[0, 0].set_xlabel('Distance Score', fontsize=11)
     axes[0, 0].set_ylabel('Frequency', fontsize=11)
     axes[0, 0].set_title('Distribution of Distance Scores', fontsize=12, fontweight='bold')
@@ -396,7 +396,7 @@ def plot_predictions_distribution(predictions, true_labels):
     negative_indices = np.where(true_labels == 0)[0]
     axes[1, 0].scatter(positive_indices, positive_dists, alpha=0.5, s=20, color='green', label='Same Person')
     axes[1, 0].scatter(negative_indices, negative_dists, alpha=0.5, s=20, color='red', label='Different Person')
-    axes[1, 0].axhline(0.5, color='blue', linestyle='--', linewidth=2, label='Decision Threshold')
+    axes[1, 0].axhline(.8, color='blue', linestyle='--', linewidth=2, label='Decision Threshold')
     axes[1, 0].set_xlabel('Pair Index', fontsize=11)
     axes[1, 0].set_ylabel('Distance Score', fontsize=11)
     axes[1, 0].set_title('Distance Scores by Pair Index', fontsize=12, fontweight='bold')
@@ -425,10 +425,10 @@ DIFFERENT PERSON (Negative) Pairs:
   Median: {np.median(negative_dists):.4f}
 
 THRESHOLD: 0.5
-  Positive pairs < 0.5: {np.sum(positive_dists < 0.5)} / {len(positive_dists)}
-  Negative pairs >= 0.5: {np.sum(negative_dists >= 0.5)} / {len(negative_dists)}
+  Positive pairs < 0.5: {np.sum(positive_dists < .8)} / {len(positive_dists)}
+  Negative pairs >= 0.5: {np.sum(negative_dists >= .8)} / {len(negative_dists)}
     """
-    axes[1, 1].text(0.1, 0.5, stats_text, fontsize=10, family='monospace', verticalalignment='center',
+    axes[1, 1].text(0.1, .8, stats_text, fontsize=10, family='monospace', verticalalignment='center',
                     bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
     
     plt.suptitle('Siamese Network Distance Score Analysis', fontsize=14, fontweight='bold')

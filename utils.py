@@ -29,10 +29,12 @@ def contrastive_loss(y_true, d):
         (1 - y_true) * tf.square(tf.maximum(margin - d, 0.0))
     )
 
+
+# with a threshold of .8 this yeilds significantly better results
 def accuracy(y_true, y_pred):
     y_true = tf.cast(tf.reshape(y_true, [-1]), tf.float32)
     y_pred = tf.reshape(y_pred, [-1])  # flatten to 1D
-    return tf.reduce_mean(tf.cast(tf.equal(y_true, tf.cast(y_pred < 0.5, tf.float32)), tf.float32))
+    return tf.reduce_mean(tf.cast(tf.equal(y_true, tf.cast(y_pred < .5 , tf.float32)), tf.float32))
 
 
 def get_data(dir):
